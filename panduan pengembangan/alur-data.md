@@ -38,3 +38,17 @@ sequenceDiagram
     Core->>ModulInv: Update status inventaris & kendaraan
     Core->>ModulLat: Update latihan & evaluasi
     Core->>Dashboard: Refresh data real-time
+
+flowchart TB
+    PRAJURIT[Input Data: QR, GPS, Form] --> CORE[Core OS]
+    CORE --> PERSONEL[Modul Personel]
+    CORE --> POS[Modul Pos & Operasi]
+    CORE --> INVENT[Modul Inventaris & Logistik]
+    CORE --> LATIH[Modul Latihan & Evaluasi]
+    CORE --> DASHBOARD[Dashboard Admin]
+
+    %% Event Driven Feedback
+    PERSONEL -->|Update status| CORE
+    POS -->|Update log| CORE
+    INVENT -->|Update inventaris| CORE
+    LATIH -->|Update evaluasi| CORE
