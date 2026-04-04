@@ -1,11 +1,13 @@
 # Setup Environment Developer OS COMBAT
 
-## Fokus Awal MVP 1–2 Minggu
-- Core OS minimal (User Management + Module Manager + Dashboard)
-- Modul Personel + Pos
+Dokumen ini menjelaskan langkah-langkah **mempersiapkan environment developer** untuk Core OS dan modul plug-in OS COMBAT.
 
-## Langkah
-1. Clone repo
-2. Install dependencies
-3. Setup DB minimal (users, absensi, pos)
-4. Jalankan Core OS + Modul Personel & Pos
+---
+
+## **1. Clone Repository**
+
+Clone repository OS COMBAT dari GitHub:
+
+```bash
+git clone https://github.com/username/os-combat.git
+cd os-combat
