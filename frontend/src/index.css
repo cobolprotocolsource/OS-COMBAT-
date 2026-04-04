@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root { height: 100%; }
+body { @apply bg-gray-100 text-gray-900; }
+
+/* Simple military-style color tokens */
+.topbar { background: linear-gradient(90deg,#0f172a,#1f2937); }
