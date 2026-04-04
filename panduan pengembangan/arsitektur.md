@@ -65,19 +65,3 @@ flowchart TB
     B2 -->|update absensi & lokasi| CORE
     B3 -->|tracking alat & kendaraan| CORE
     B4 -->|update latihan & presensi| CORE
-
-
-Keterangan Diagram:
-Core OS menyimpan semua master data dan mengatur komunikasi antar modul
-Modul plug-in hanya membaca/referensi data, update via event ke Core OS
-Modul baru bisa plug-in tanpa merusak core, otomatis terhubung ke API Core OS
-4. Keuntungan Arsitektur Modular
-Scalable & Flexible: mudah menambahkan modul baru sesuai kebutuhan batalion
-Data Konsisten: master data tersentralisasi, tidak ada duplikasi
-Keamanan Terpusat: kontrol akses, enkripsi, dan audit trail di Core OS
-Real-time Sync: update data antar modul langsung terlihat di dashboard admin
-5. Best Practices Developer
-Gunakan standar API Core untuk modul baru
-Pastikan modul hanya mengakses referensi master data, tidak menyimpan duplikat
-Gunakan event-driven update untuk menjaga sinkronisasi antar modul
-Ikuti UI framework Core OS agar tampilan modul konsisten
