@@ -47,3 +47,15 @@ Setiap modul terdiri dari:
   },
   "timestamp": "2026-04-04T12:00:00Z"
 }
+
+
+sequenceDiagram
+    participant ModulBaru
+    participant Core
+    participant DashboardAdmin
+
+    ModulBaru->>Core: Registrasi modul
+    Core-->>DashboardAdmin: Tampilkan modul baru
+    DashboardAdmin->>Core: Aktifkan modul
+    Core-->>ModulBaru: Kirim master data & event
+    ModulBaru->>Core: Update data internal & sync event
