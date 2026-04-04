@@ -1,56 +1,80 @@
 // core/audit.js
-// File-backed audit logger for development. Writes to `data/audit.json` and keeps an in-memory copy.
+// Supabase-backed audit logger using audit_logs table.
 
-const fs = require('fs');
-const path = require('path');
+const { getClient } = require('./db');
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
-const FILE_PATH = path.join(DATA_DIR, 'audit.json');
-
-// ensure data directory exists
-try {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-} catch (e) {
-  // ignore
-}
-
-let logs = [];
-
-// load existing logs if any
-try {
-  if (fs.existsSync(FILE_PATH)) {
-    const raw = fs.readFileSync(FILE_PATH, 'utf8');
-    logs = JSON.parse(raw || '[]');
-  }
-} catch (e) {
-  // if parse fails, start fresh but keep running
-  logs = [];
-}
-
-function persist() {
+async function log(action, details = {}) {
   try {
-    fs.writeFileSync(FILE_PATH, JSON.stringify(logs, null, 2), 'utf8');
-  } catch (e) {
-    // best-effort: do not crash application on audit write failure
-    // eslint-disable-next-line no-console
-    console.error('Failed to persist audit log', e);
+    const client = getClient();
+    if (!client) {
+      console.error('Supabase client not initialized for audit log');
+      return null;
+    }
+
+    const { data, error } = await client
+      .from('audit_logs')
+      .insert({ action, details })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Failed to log audit entry', error);
+      return null;
+    }
+
+    return {
+      id: data.id,
+      action: data.action,
+      details: data.details,
+      when: data.created_at
+    };
+  } catch (err) {
+    console.error('Audit log error', err);
+    return null;
   }
 }
 
-function log(action, details = {}) {
-  const entry = { id: Date.now() + Math.random().toString(36).slice(2), action, details, when: new Date().toISOString() };
-  logs.push(entry);
-  persist();
-  return entry;
+async function list() {
+  try {
+    const client = getClient();
+    if (!client) throw new Error('Supabase client not initialized');
+
+    const { data, error } = await client
+      .from('audit_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(1000);
+
+    if (error) throw new Error(error.message);
+
+    return data.map(d => ({
+      id: d.id,
+      action: d.action,
+      details: d.details,
+      when: d.created_at
+    }));
+  } catch (err) {
+    console.error('Failed to fetch audit logs', err);
+    return [];
+  }
 }
 
-function list() {
-  return logs.slice().reverse();
-}
+async function clear() {
+  try {
+    const client = getClient();
+    if (!client) throw new Error('Supabase client not initialized');
 
-function clear() {
-  logs.length = 0;
-  persist();
+    const { error } = await client
+      .from('audit_logs')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000');
+
+    if (error) throw new Error(error.message);
+    return true;
+  } catch (err) {
+    console.error('Failed to clear audit logs', err);
+    return false;
+  }
 }
 
 module.exports = { log, list, clear };

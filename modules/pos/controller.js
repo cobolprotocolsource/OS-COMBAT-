@@ -5,32 +5,39 @@ const model = require('./model');
 const events = require('./events');
 const { sendSuccess, sendError } = require('../../core/util');
 const audit = require('../../core/audit');
+const { validatePos, sanitizePos } = require('./validators');
 
-function create(req, res) {
+async function create(req, res) {
   try {
-    const payload = req.body;
-    const created = model.createPos(payload);
+    const sanitized = sanitizePos(req.body);
+    const validation = validatePos(sanitized);
+
+    if (!validation.isValid) {
+      return sendError(res, { errors: validation.errors }, 400);
+    }
+
+    const created = await model.createPos(sanitized);
     events.emit('pos.created', created);
-    audit.log('pos.create', { by: req.user || null, id: created.id, payload });
+    await audit.log('pos.create', { by: req.user || null, id: created.id, payload: sanitized });
     return sendSuccess(res, created);
   } catch (err) {
     return sendError(res, err.message);
   }
 }
 
-function list(req, res) {
+async function list(req, res) {
   try {
-    const rows = model.listPos();
+    const rows = await model.listPos();
     return sendSuccess(res, rows);
   } catch (err) {
     return sendError(res, err.message);
   }
 }
 
-function getById(req, res) {
+async function getById(req, res) {
   try {
     const { id } = req.params;
-    const rec = model.getPosById(id);
+    const rec = await model.getPosById(id);
     if (!rec) return sendError(res, 'Not found', 404);
     return sendSuccess(res, rec);
   } catch (err) {
@@ -38,31 +45,30 @@ function getById(req, res) {
   }
 }
 
-function update(req, res) {
+async function update(req, res) {
   try {
     const { id } = req.params;
-    const updated = model.updatePos(id, req.body);
+    const updated = await model.updatePos(id, req.body);
     if (!updated) return sendError(res, 'Not found', 404);
     events.emit('pos.updated', updated);
-    audit.log('pos.update', { by: req.user || null, id, payload: req.body });
+    await audit.log('pos.update', { by: req.user || null, id, payload: req.body });
     return sendSuccess(res, updated);
   } catch (err) {
     return sendError(res, err.message);
   }
 }
 
-function remove(req, res) {
+async function remove(req, res) {
   try {
     const { id } = req.params;
-    const ok = model.deletePos(id);
+    const ok = await model.deletePos(id);
     if (!ok) return sendError(res, 'Not found', 404);
     events.emit('pos.deleted', { id });
-    audit.log('pos.delete', { by: req.user || null, id });
+    await audit.log('pos.delete', { by: req.user || null, id });
     return sendSuccess(res, { id });
   } catch (err) {
     return sendError(res, err.message);
   }
-
 }
 
 module.exports = { create, list, getById, update, remove };
