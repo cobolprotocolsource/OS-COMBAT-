@@ -6,6 +6,7 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      // Proxy API requests to backend running on port 3000
       '/api': 'http://localhost:3000'
     }
   }
